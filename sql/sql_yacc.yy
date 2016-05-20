@@ -1905,12 +1905,12 @@ bool my_yyoverflow(short **a, YYSTYPE **b, ulong *yystacksize);
         opt_field_or_var_spec fields_or_vars opt_load_data_set_spec
         view_list_opt view_list view_select
         trigger_tail sp_tail sf_tail event_tail
-        udf_tail create_function_tail
+        udf_tail create_function_tail create_function_tail2
         install uninstall partition_entry binlog_base64_event
         normal_key_options normal_key_opts all_key_opt 
         spatial_key_options fulltext_key_options normal_key_opt 
         fulltext_key_opt spatial_key_opt fulltext_key_opts spatial_key_opts
-	keep_gcc_happy
+        keep_gcc_happy
         key_using_alg
         part_column_list
         server_def server_options_list server_option
@@ -2630,6 +2630,10 @@ create:
           { Lex->create_info.set($1); }
           sf_tail
           { }
+        | create_or_replace definer AGGREGATE_SYM FUNCTION_SYM
+          { Lex->create_info.set($1); }
+          sf_tail
+          { }
         | create_or_replace no_definer FUNCTION_SYM
           { Lex->create_info.set($1); }
           create_function_tail
@@ -2637,9 +2641,9 @@ create:
         | create_or_replace no_definer AGGREGATE_SYM FUNCTION_SYM
           {
             Lex->create_info.set($1);
-            Lex->udf.type= UDFTYPE_AGGREGATE;
+
           }
-          udf_tail
+          create_function_tail2
           { }
         | create_or_replace USER_SYM opt_if_not_exists clear_privileges grant_list
           opt_require_clause opt_resource_options
@@ -2669,6 +2673,10 @@ create:
 create_function_tail:
           sf_tail { }
         | udf_tail { Lex->udf.type= UDFTYPE_FUNCTION; }
+        ;
+create_function_tail2:
+          sf_tail  { }
+        | udf_tail { Lex->udf.type= UDFTYPE_AGGREGATE; }
         ;
 
 opt_sequence:
@@ -3985,6 +3993,7 @@ sp_proc_stmt_fetch_head:
 
 sp_proc_stmt_fetch:
           sp_proc_stmt_fetch_head sp_fetch_list { }
+          | FETCH_SYM GROUP_SYM NEXT_SYM ROW_SYM {}
         ;
 
 sp_proc_stmt_close:
@@ -16797,7 +16806,6 @@ udf_tail:
             lex->udf.dl= $6.str;
           }
         ;
-
 
 sf_return_type:
           RETURNS_SYM
