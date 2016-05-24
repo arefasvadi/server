@@ -168,6 +168,7 @@ public:
   };
 
   const Sp_handler *m_handler;
+  stored_procedure_type m_type;
   uint m_flags;                 // Boolean attributes of a stored routine
 
   Column_definition m_return_field_def; /**< This is used for FUNCTIONs only. */
@@ -197,6 +198,7 @@ public:
   enum_sp_suid_behaviour suid() const { return m_chistics.suid; }
   bool detistic() const { return m_chistics.detistic; }
   enum_sp_data_access daccess() const { return m_chistics.daccess; }
+  enum_sp_aggregate_behaviour agg_type() const { return m_chistics.agg_type;}
   /**
     Is this routine being executed?
   */

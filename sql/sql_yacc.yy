@@ -2627,11 +2627,17 @@ create:
           event_tail
           { }
         | create_or_replace definer FUNCTION_SYM
-          { Lex->create_info.set($1); }
+          {
+            Lex->create_info.set($1); 
+            Lex->sp_chistics.agg_type= NOT_AGGREGATE;
+          }
           sf_tail
           { }
         | create_or_replace definer AGGREGATE_SYM FUNCTION_SYM
-          { Lex->create_info.set($1); }
+          {
+            Lex->create_info.set($1);
+            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
+          }
           sf_tail
           { }
         | create_or_replace no_definer FUNCTION_SYM
@@ -2671,11 +2677,17 @@ create:
         ;
 
 create_function_tail:
-          sf_tail { }
+          sf_tail 
+          {
+            Lex->sp_chistics.agg_type= NOT_AGGREGATE;
+          }
         | udf_tail { Lex->udf.type= UDFTYPE_FUNCTION; }
         ;
 create_function_tail2:
-          sf_tail  { }
+          sf_tail  
+          {
+            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
+          }
         | udf_tail { Lex->udf.type= UDFTYPE_AGGREGATE; }
         ;
 
@@ -3993,7 +4005,9 @@ sp_proc_stmt_fetch_head:
 
 sp_proc_stmt_fetch:
           sp_proc_stmt_fetch_head sp_fetch_list { }
-          | FETCH_SYM GROUP_SYM NEXT_SYM ROW_SYM {}
+          | FETCH_SYM GROUP_SYM NEXT_SYM ROW_SYM 
+          {
+          }
         ;
 
 sp_proc_stmt_close:
@@ -16843,8 +16857,11 @@ sf_tail:
           }
           sp_proc_stmt_in_returns_clause
           {
+            // LEX *lex= thd->lex;
+            //lex->sphead->set_chistics(lex->sp_chistics);
             if (Lex->sp_body_finalize_function(thd))
               MYSQL_YYABORT;
+
           }
         ;
 
