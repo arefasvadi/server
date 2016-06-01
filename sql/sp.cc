@@ -710,7 +710,6 @@ Sp_handler::db_find_routine(THD *thd,
     goto done;
   }
 
-
   // Get additional information
   modified= table->field[MYSQL_PROC_FIELD_MODIFIED]->val_int();
   created= table->field[MYSQL_PROC_FIELD_CREATED]->val_int();

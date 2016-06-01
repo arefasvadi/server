@@ -4007,6 +4007,7 @@ sp_proc_stmt_fetch:
           sp_proc_stmt_fetch_head sp_fetch_list { }
           | FETCH_SYM GROUP_SYM NEXT_SYM ROW_SYM 
           {
+            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
           }
         ;
 
@@ -16857,8 +16858,8 @@ sf_tail:
           }
           sp_proc_stmt_in_returns_clause
           {
-            // LEX *lex= thd->lex;
-            //lex->sphead->set_chistics(lex->sp_chistics);
+            LEX *lex= thd->lex;
+            lex->sphead->set_chistics(lex->sp_chistics);
             if (Lex->sp_body_finalize_function(thd))
               MYSQL_YYABORT;
 
