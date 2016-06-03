@@ -2274,9 +2274,7 @@ Sp_handler::show_create_sp(THD *thd, String *buf,
 {
   sql_mode_t old_sql_mode= thd->variables.sql_mode;
   ulong agglen= (chistics.agg_type == GROUP_AGGREGATE)? 10 : 0;
-
   /* Make some room to begin with */
-
   if (buf->alloc(100 + db.length + 1 + name.length +
                  params.length + returns.length +
 		 chistics.comment.length + 10 /* length of " DEFINER= "*/ + agglen +
