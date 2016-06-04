@@ -16827,6 +16827,7 @@ udf_tail:
             lex->udf.returns= (Item_result) $4;
             lex->udf.dl= $6.str;
           }
+        ;
 
 sf_return_type:
           RETURNS_SYM
