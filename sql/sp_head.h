@@ -168,7 +168,6 @@ public:
   };
 
   const Sp_handler *m_handler;
-  stored_procedure_type m_type;
   uint m_flags;                 // Boolean attributes of a stored routine
 
   Column_definition m_return_field_def; /**< This is used for FUNCTIONs only. */
@@ -831,9 +830,11 @@ public:
 private:
 
   MEM_ROOT *m_thd_root;		///< Temp. store for thd's mem_root
+  MEM_ROOT callee_mem_root;
   THD *m_thd;			///< Set if we have reset mem_root
 
   sp_pcontext *m_pcont;		///< Parse context
+  sp_rcontext *m_rcont;
   List<LEX> m_lex;		///< Temp. store for the other lex
   DYNAMIC_ARRAY m_instr;	///< The "instructions"
 
