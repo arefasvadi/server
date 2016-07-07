@@ -41,7 +41,7 @@ sp_rcontext::sp_rcontext(const sp_head *owner,
                          bool in_sub_stmt)
   :end_partial_result_set(false),
    m_sp(owner),
-   pause_state(false),
+   pause_state(false),quit_func(false),
    m_root_parsing_ctx(root_parsing_ctx),
    m_var_table(NULL),
    m_return_value_fld(return_value_fld),
