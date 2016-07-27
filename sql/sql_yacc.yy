@@ -4015,9 +4015,9 @@ sp_proc_stmt_fetch:
           | FETCH_SYM GROUP_SYM NEXT_SYM ROW_SYM
           {
             LEX *lex= Lex;
-            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
             sp_head *sp= lex->sphead;            
             sp_instr_cfetch *i;
+            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
             i= new (thd->mem_root)
               sp_instr_cfetch(sp->instructions(), lex->spcont, 0,FALSE);
             if (i == NULL ||
@@ -16836,6 +16836,20 @@ udf_tail:
             lex->udf.dl= $6.str;
           }
         ;
+<<<<<<< HEAD
+=======
+sf_tail:
+          AGGREGATE_SYM sf_tail2 { Lex->sp_chistics.agg_type= GROUP_AGGREGATE;}
+        | sf_tail2               
+        {
+          if(Lex->sp_chistics.agg_type == GROUP_AGGREGATE)
+          {
+            my_parse_error(thd, ER_SYNTAX_ERROR);
+          }
+          Lex->sp_chistics.agg_type == NOT_AGGREGATE;
+        }
+        ;
+>>>>>>> c9b073c... Added description for Item_sum_sp class and its functions
 
 sf_return_type:
           RETURNS_SYM
