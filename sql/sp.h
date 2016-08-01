@@ -351,7 +351,7 @@ inline const Sp_handler *Sp_handler::handler(MDL_key::enum_mdl_namespace type)
 enum
 {
   MYSQL_PROC_FIELD_DB = 0,
-  MYSQL_PROC_FIELD_NAME,  
+  MYSQL_PROC_FIELD_NAME,
   MYSQL_PROC_MYSQL_TYPE,
   MYSQL_PROC_FIELD_SPECIFIC_NAME,
   MYSQL_PROC_FIELD_LANGUAGE,

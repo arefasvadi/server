@@ -201,7 +201,6 @@ TABLE_FIELD_TYPE proc_table_fields[MYSQL_PROC_FIELD_COUNT] =
     { C_STRING_WITH_LEN("body_utf8") },
     { C_STRING_WITH_LEN("longblob") },
     { NULL, 0 }
-
   },
   {
     { C_STRING_WITH_LEN("aggregate") },
@@ -558,18 +557,18 @@ bool
 db_get_aggregate_value(THD *thd, stored_procedure_type type, sp_name *name, st_sp_chistics *chistics)
 {
   TABLE *table;
-  bool ret=false;
+  bool ret= false;
   char *ptr;
   bool saved_time_zone_used= thd->time_zone_used;
   ulonglong saved_mode= thd->variables.sql_mode;
   Open_tables_backup open_tables_state_backup;
   sp_head *sp;
-    
+
   DBUG_ENTER("db_get_aggregate_value");
   DBUG_PRINT("enter", ("type: %d name: %.*s",
            type, (int) name->m_name.length, name->m_name.str));
 
-  if(sp=sp_cache_lookup(&thd->sp_func_cache,name))
+  if(sp= sp_cache_lookup(&thd->sp_func_cache,name))
   {
     chistics->agg_type= sp->m_chistics->agg_type;
     DBUG_RETURN(FALSE);
@@ -578,10 +577,9 @@ db_get_aggregate_value(THD *thd, stored_procedure_type type, sp_name *name, st_s
   if (!(table= open_proc_table_for_read(thd, &open_tables_state_backup)))
     DBUG_RETURN(true);
 
-  
   if (db_find_routine_aux(thd, type, name, table) != SP_OK)
   {
-    ret= true;  
+    ret= true;
     goto done;
   }
 
@@ -610,20 +608,18 @@ db_get_aggregate_value(THD *thd, stored_procedure_type type, sp_name *name, st_s
   default:
     chistics->agg_type= DEFAULT_AGGREGATE;
   }
-  
+
  done:
-  /* 
+  /*
     Restore the time zone flag as the timezone usage in proc table
     does not affect replication.
-  */  
+  */
   thd->time_zone_used= saved_time_zone_used;
   if (table)
     close_system_tables(thd, &open_tables_state_backup);
   thd->variables.sql_mode= saved_mode;
   DBUG_RETURN(ret);
 }
-
-
 
 
 bool st_sp_chistics::read_from_mysql_proc_row(THD *thd, TABLE *table)
@@ -795,10 +791,10 @@ Sp_handler::db_find_routine(THD *thd,
                        sql_mode, params, returns, body, chistics, definer,
                        created, modified, creation_ctx);
  done:
-  /* 
+  /*
     Restore the time zone flag as the timezone usage in proc table
     does not affect replication.
-  */  
+  */
   thd->time_zone_used= saved_time_zone_used;
   if (table)
     close_system_tables(thd, &open_tables_state_backup);
