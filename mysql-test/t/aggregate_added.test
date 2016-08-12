@@ -1,7 +1,0 @@
-
-CREATE  FUNCTION f1(str char(20))
-RETURNS TEXT
-RETURN CONCAT('Hello2, ', str, '!');
-show create function f1;
- 
-DROP FUNCTION f1;
