@@ -3454,9 +3454,9 @@ Create_sp_func::create_with_db(THD *thd, LEX_CSTRING *db, LEX_CSTRING *name,
   qname= new (thd->mem_root) sp_name(db, name, use_explicit_name);
   sp_handler_function.add_used_routine(lex, thd, qname);
 
-  if(!db_get_aggregate_value(thd,TYPE_ENUM_FUNCTION,qname,&chistics))
+  if (db_get_aggregate_value(thd,TYPE_ENUM_FUNCTION,qname,&chistics) == SP_OK)
   {
-    if(chistics.agg_type == GROUP_AGGREGATE)
+    if (chistics.agg_type == GROUP_AGGREGATE)
     {
       if (arg_count > 0)
         func= new (thd->mem_root) Item_sum_sp(thd, lex->current_context(), qname,
@@ -3472,14 +3472,6 @@ Create_sp_func::create_with_db(THD *thd, LEX_CSTRING *db, LEX_CSTRING *name,
       else
         func= new (thd->mem_root) Item_func_sp(thd, lex->current_context(), qname);
     }
-  }
-  else
-  {
-    if (arg_count > 0)
-        func= new (thd->mem_root) Item_func_sp(thd, lex->current_context(), qname,
-                                           *item_list);
-      else
-        func= new (thd->mem_root) Item_func_sp(thd, lex->current_context(), qname);
   }
 
   lex->safe_to_cache_query= 0;
@@ -3850,11 +3842,10 @@ Create_func_coercibility::create_1_arg(THD *thd, Item *arg1)
 
 Create_func_dyncol_check Create_func_dyncol_check::s_singleton;
 
-
 Item*
 Create_func_dyncol_check::create_1_arg(THD *thd, Item *arg1)
 {
-return new (thd->mem_root) Item_func_dyncol_check(thd, arg1);
+  return new (thd->mem_root) Item_func_dyncol_check(thd, arg1);
 }
 
 Create_func_dyncol_exists Create_func_dyncol_exists::s_singleton;
@@ -3862,7 +3853,7 @@ Create_func_dyncol_exists Create_func_dyncol_exists::s_singleton;
 Item*
 Create_func_dyncol_exists::create_2_arg(THD *thd, Item *arg1, Item *arg2)
 {
-return new (thd->mem_root) Item_func_dyncol_exists(thd, arg1, arg2);
+  return new (thd->mem_root) Item_func_dyncol_exists(thd, arg1, arg2);
 }
 
 Create_func_dyncol_list Create_func_dyncol_list::s_singleton;
@@ -3870,7 +3861,7 @@ Create_func_dyncol_list Create_func_dyncol_list::s_singleton;
 Item*
 Create_func_dyncol_list::create_1_arg(THD *thd, Item *arg1)
 {
-return new (thd->mem_root) Item_func_dyncol_list(thd, arg1);
+  return new (thd->mem_root) Item_func_dyncol_list(thd, arg1);
 }
 
 Create_func_dyncol_json Create_func_dyncol_json::s_singleton;
