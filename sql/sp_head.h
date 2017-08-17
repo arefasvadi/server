@@ -1804,10 +1804,9 @@ class sp_instr_cfetch : public sp_instr
 
 public:
 
-  sp_instr_cfetch(uint ip, sp_pcontext *ctx, uint c, bool flag)
+  sp_instr_cfetch(uint ip, sp_pcontext *ctx, uint c)
     : sp_instr(ip, ctx), m_cursor(c)
   {
-    normal_cursor_fetch= flag;
     m_varlist.empty();
   }
 
@@ -1825,7 +1824,6 @@ public:
 
 private:
 
-  bool normal_cursor_fetch;
   uint m_cursor;
   List<sp_variable> m_varlist;
 
@@ -1845,7 +1843,7 @@ class sp_instr_agg_cfetch : public sp_instr
 
 public:
 
-  sp_instr_agg_cfetch(uint ip, sp_pcontext *ctx, uint c, bool flag)
+  sp_instr_agg_cfetch(uint ip, sp_pcontext *ctx)
     : sp_instr(ip, ctx){}
 
   virtual ~sp_instr_agg_cfetch()
