@@ -16829,26 +16829,6 @@ udf_tail:
             lex->udf.dl= $6.str;
           }
         ;
-<<<<<<< HEAD
-=======
-sf_tail:
-          AGGREGATE_SYM sf_tail2
-          {
-           if (Lex->sp_chistics.agg_type != GROUP_AGGREGATE)
-           {
-             my_yyabort_error((ER_INVALID_AGGREGATE_FUNCTION, MYF(0), ""));
-           }
-          }
-        | sf_tail2
-        {
-          if (Lex->sp_chistics.agg_type == GROUP_AGGREGATE)
-          {
-            my_yyabort_error((ER_NOT_AGGREGATE_FUNCTION, MYF(0), ""));
-          }
-          Lex->sp_chistics.agg_type = NOT_AGGREGATE;
-        }
-        ;
->>>>>>> c9b073c... Added description for Item_sum_sp class and its functions
 
 sf_return_type:
           RETURNS_SYM
