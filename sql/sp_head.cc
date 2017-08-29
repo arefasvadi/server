@@ -1166,7 +1166,7 @@ sp_head::execute(THD *thd, bool merge_da_on_success)
 #if defined(ENABLED_PROFILING)
       thd->profiling.discard_current_query();
 #endif
-        thd->spcont->quit_func= TRUE;
+      thd->spcont->quit_func= TRUE;
       break;
     }
 
@@ -1201,7 +1201,6 @@ sp_head::execute(THD *thd, bool merge_da_on_success)
     sql_digest_state *parent_digest= thd->m_digest;
     thd->m_digest= NULL;
 
-    uint prev_ip= ip;
     err_status= i->execute(thd, &ip);
 
     thd->m_digest= parent_digest;
@@ -1236,10 +1235,9 @@ sp_head::execute(THD *thd, bool merge_da_on_success)
 
     /* Reset sp_rcontext::end_partial_result_set flag. */
     ctx->end_partial_result_set= FALSE;
-    if (prev_ip == ip)
-      break;
 
-  } while (!err_status && !thd->killed && !thd->is_fatal_error);
+  } while (!err_status && !thd->killed && !thd->is_fatal_error
+           && !thd->spcont->pause_state);
 
 #if defined(ENABLED_PROFILING)
   thd->profiling.finish_current_query();
