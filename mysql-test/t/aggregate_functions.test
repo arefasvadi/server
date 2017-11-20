@@ -24,10 +24,10 @@ INSERT INTO t1 (sal, id, val, counter) VALUES (2000, 5, 10, 7);
 INSERT INTO t1 (sal, id, val, counter) VALUES (5000, 7, 13, 8);
 INSERT INTO t1 (sal, id, val, counter) VALUES (6000, 6, 19, 9);
 INSERT INTO t1 (sal, id, val, counter) VALUES (7000, 7, 12, 0);
-INSERT INTO t1 (sal, id, val, counter) VALUES (4000, 6, 14, 1);
-INSERT INTO t1 (sal, id, val, counter) VALUES (8000, 5, 19, 3);
-INSERT INTO t1 (sal, id, val, counter) VALUES (9000, 4, 11, 4);
-INSERT INTO t1 (sal, id, val, counter) VALUES (1000, 3, 11, 2);
+INSERT INTO t1 (sal, id, val, counter) VALUES (4000, 6, 14, 6);
+INSERT INTO t1 (sal, id, val, counter) VALUES (8000, 5, 19, 11);
+INSERT INTO t1 (sal, id, val, counter) VALUES (9000, 4, 11, 12);
+INSERT INTO t1 (sal, id, val, counter) VALUES (1000, 3, 11, 13);
  
 select agg_and(sal) from t1 where id>= 1;
  
@@ -190,8 +190,6 @@ select agg_agg_func(sal) from t2;
 # GROUP BY AND ORDER BY
 --sorted_result
 select id, agg_sum(sal) from t1 where id>= 1 group by id;
---sorted_result
-select counter, agg_sum(sal) from t1 where id>= 1 group by counter;
 --sorted_result
 select val, agg_sum(sal) from t1 where id>= 1 group by val;
 select counter, agg_sum(sal) from t1 where id>= 1 group by id order by counter;

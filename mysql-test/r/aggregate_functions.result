@@ -17,10 +17,10 @@ INSERT INTO t1 (sal, id, val, counter) VALUES (2000, 5, 10, 7);
 INSERT INTO t1 (sal, id, val, counter) VALUES (5000, 7, 13, 8);
 INSERT INTO t1 (sal, id, val, counter) VALUES (6000, 6, 19, 9);
 INSERT INTO t1 (sal, id, val, counter) VALUES (7000, 7, 12, 0);
-INSERT INTO t1 (sal, id, val, counter) VALUES (4000, 6, 14, 1);
-INSERT INTO t1 (sal, id, val, counter) VALUES (8000, 5, 19, 3);
-INSERT INTO t1 (sal, id, val, counter) VALUES (9000, 4, 11, 4);
-INSERT INTO t1 (sal, id, val, counter) VALUES (1000, 3, 11, 2);
+INSERT INTO t1 (sal, id, val, counter) VALUES (4000, 6, 14, 6);
+INSERT INTO t1 (sal, id, val, counter) VALUES (8000, 5, 19, 11);
+INSERT INTO t1 (sal, id, val, counter) VALUES (9000, 4, 11, 12);
+INSERT INTO t1 (sal, id, val, counter) VALUES (1000, 3, 11, 13);
 select agg_and(sal) from t1 where id>= 1;
 agg_and(sal)
 768
@@ -154,17 +154,6 @@ id	agg_sum(sal)
 5	10000
 6	10000
 7	12000
-select counter, agg_sum(sal) from t1 where id>= 1 group by counter;
-counter	agg_sum(sal)
-0	7000
-1	10000
-2	2000
-3	13000
-4	12000
-5	7000
-7	2000
-8	5000
-9	6000
 select val, agg_sum(sal) from t1 where id>= 1 group by val;
 val	agg_sum(sal)
 10	3000
@@ -180,43 +169,43 @@ select counter, agg_sum(sal) from t1 where id>= 1 group by id order by counter;
 counter	agg_sum(sal)
 0	12000
 2	7000
-2	6000
 4	12000
 5	7000
 7	10000
 9	10000
+13	6000
 select counter, id, agg_sum(sal), agg_sum(sal) from t1 where id>= 1 group by id order by counter;
 counter	id	agg_sum(sal)	agg_sum(sal)
 0	7	12000	12000
 2	2	7000	7000
-2	3	6000	6000
 4	4	12000	12000
 5	1	7000	7000
 7	5	10000	10000
 9	6	10000	10000
+13	3	6000	6000
 select counter, id, agg_sum(sal), sum(distinct sal) from t1 where id>= 1 group by id order by counter desc;
 counter	id	agg_sum(sal)	sum(distinct sal)
+13	3	6000	6000
 9	6	10000	10000
 7	5	10000	10000
 5	1	7000	7000
 4	4	12000	12000
 2	2	7000	7000
-2	3	6000	6000
 0	7	12000	12000
 select val, counter, id, agg_sum(sal), sum(distinct sal), agg_min(sal), agg_max(sal), agg_avg(sal) from t1 where id>= 1 group by id, val order by counter, val;
 val	counter	id	agg_sum(sal)	sum(distinct sal)	agg_min(sal)	agg_max(sal)	agg_avg(sal)
 12	0	7	7000	7000	7000	7000	7000
-14	1	6	4000	4000	4000	4000	4000
 18	1	2	6000	6000	6000	6000	6000
 10	2	2	1000	1000	1000	1000	1000
-11	2	3	1000	1000	1000	1000	1000
 15	3	3	5000	5000	5000	5000	5000
-19	3	5	8000	8000	8000	8000	8000
 11	4	4	12000	12000	3000	9000	6000
 16	5	1	7000	7000	7000	7000	7000
+14	6	6	4000	4000	4000	4000	4000
 10	7	5	2000	2000	2000	2000	2000
 13	8	7	5000	5000	5000	5000	5000
 19	9	6	6000	6000	6000	6000	6000
+19	11	5	8000	8000	8000	8000	8000
+11	13	3	1000	1000	1000	1000	1000
 create table t3 (i int);
 INSERT INTO t3 (i) select agg_sum(sal) from t1;
 select * from t3;
