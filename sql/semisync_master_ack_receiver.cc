@@ -24,10 +24,12 @@ extern ReplSemiSyncMaster repl_semisync;
 /* Callback function of ack receive thread */
 pthread_handler_t ack_receive_handler(void *arg)
 {
+  Ack_receiver *recv= reinterpret_cast<Ack_receiver *>(arg);
+
   my_thread_init();
-  reinterpret_cast<Ack_receiver *>(arg)->run();
+  recv->run();
   my_thread_end();
-  pthread_exit(0);
+
   return NULL;
 }
 
@@ -62,6 +64,7 @@ bool Ack_receiver::start()
   const char *kWho = "Ack_receiver::start";
   function_enter(kWho);
 
+  mysql_mutex_lock(&m_mutex);
   if(m_status == ST_DOWN)
   {
     pthread_attr_t attr;
@@ -71,7 +74,9 @@ bool Ack_receiver::start()
     if (DBUG_EVALUATE_IF("rpl_semisync_simulate_create_thread_failure", 1, 0) ||
         pthread_attr_init(&attr) != 0 ||
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) != 0 ||
+#ifndef _WIN32
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) != 0 ||
+#endif
         mysql_thread_create(key_ss_thread_Ack_receiver_thread, &m_pid,
                             &attr, ack_receive_handler, this))
     {
@@ -79,10 +84,13 @@ bool Ack_receiver::start()
                       " could not create thread(errno:%d)", errno);
 
       m_status= ST_DOWN;
+      mysql_mutex_unlock(&m_mutex);
+
       return function_exit(kWho, true);
     }
     (void) pthread_attr_destroy(&attr);
   }
+  mysql_mutex_unlock(&m_mutex);
 
   return function_exit(kWho, false);
 }
@@ -91,35 +99,22 @@ void Ack_receiver::stop()
 {
   const char *kWho = "Ack_receiver::stop";
   function_enter(kWho);
-  int ret;
 
+  mysql_mutex_lock(&m_mutex);
   if (m_status == ST_UP)
   {
-#ifdef _WIN32
-    HANDLE handle= pthread_get_handle(m_pid);
-#endif
-    mysql_mutex_lock(&m_mutex);
     m_status= ST_STOPPING;
     mysql_cond_broadcast(&m_cond);
 
     while (m_status == ST_STOPPING)
       mysql_cond_wait(&m_cond, &m_mutex);
-    mysql_mutex_unlock(&m_mutex);
 
-    /*
-      When arriving here, the ack thread already exists. Join failure has no
-      side effect aganst semisync. So we don't return an error.
-    */
-#ifdef _WIN32
-    ret= pthread_join_with_handle(handle);
-#else
-    ret= pthread_join(m_pid, NULL);
-#endif
-    if (DBUG_EVALUATE_IF("rpl_semisync_simulate_thread_join_failure", -1, ret))
-      sql_print_error("Failed to stop ack receiver thread on pthread_join, "
-                      "errno(%d)", errno);
+    DBUG_ASSERT(m_status == ST_DOWN);
+
     m_pid= 0;
   }
+  mysql_mutex_unlock(&m_mutex);
+
   function_exit(kWho);
 }
 
@@ -214,6 +209,8 @@ static void init_net(NET *net, unsigned char *buff, unsigned int buff_len)
 
 void Ack_receiver::run()
 {
+  // skip LOCK_global_system_variables due to the 3rd arg
+  THD *thd= new THD(next_thread_id(), false, true);
   NET net;
   unsigned char net_buff[REPLY_MESSAGE_MAX_LENGTH];
 
@@ -223,6 +220,11 @@ void Ack_receiver::run()
 
   sql_print_information("Starting ack receiver thread");
 
+  thd->system_thread= SYSTEM_THREAD_SEMISYNC_MASTER_BACKGROUND;
+  thd->thread_stack= (char*) &thd;
+  thd->store_globals();
+  thd->security_ctx->skip_grants();
+  thd->set_command(COM_DAEMON);
   init_net(&net, net_buff, REPLY_MESSAGE_MAX_LENGTH);
 
   mysql_mutex_lock(&m_mutex);
@@ -298,6 +300,7 @@ void Ack_receiver::run()
 end:
   sql_print_information("Stopping ack receiver thread");
   m_status= ST_DOWN;
+  delete thd;
   mysql_cond_broadcast(&m_cond);
   mysql_mutex_unlock(&m_mutex);
 }
