@@ -16881,8 +16881,8 @@ sf_tail:
           sp_proc_stmt_in_returns_clause
           {
             LEX *lex= thd->lex;
-            if (lex->spchistics.agg_type != GROUP_AGGREGATE)
-              lex->spchistics.agg_type= NOT_AGGREGATE;
+            if (lex->sp_chistics.agg_type != GROUP_AGGREGATE)
+              lex->sp_chistics.agg_type= NOT_AGGREGATE;
             lex->sphead->set_chistics(lex->sp_chistics);
             if (Lex->sp_body_finalize_function(thd))
               MYSQL_YYABORT;
