@@ -2629,24 +2629,27 @@ create:
         | create_or_replace definer FUNCTION_SYM
           {
             Lex->create_info.set($1); 
+          }
+          sf_tail
+          { 
             if (Lex->sp_chistics.agg_type == GROUP_AGGREGATE)
             {
               my_yyabort_error((ER_NOT_AGGREGATE_FUNCTION, MYF(0), ""));
             }
             Lex->sp_chistics.agg_type = NOT_AGGREGATE;
           }
-          sf_tail
-          { }
         | create_or_replace definer AGGREGATE_SYM FUNCTION_SYM
           {
             Lex->create_info.set($1);
+            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
+          }
+          sf_tail
+          {
             if (Lex->sp_chistics.agg_type != GROUP_AGGREGATE)
             {
               my_yyabort_error((ER_INVALID_AGGREGATE_FUNCTION, MYF(0), ""));
             }
           }
-          sf_tail
-          { }
         | create_or_replace no_definer FUNCTION_SYM
           { Lex->create_info.set($1); }
           create_function_tail
@@ -2654,7 +2657,6 @@ create:
         | create_or_replace no_definer AGGREGATE_SYM FUNCTION_SYM
           {
             Lex->create_info.set($1);
-
           }
           create_function_tail2
           { }
@@ -2684,7 +2686,7 @@ create:
         ;
 
 create_function_tail:
-          sf_tail 
+          sf_tail
           {
             if (Lex->sp_chistics.agg_type == GROUP_AGGREGATE)
             {
@@ -4025,6 +4027,7 @@ sp_proc_stmt_fetch:
             sp_head *sp= lex->sphead;
             sp_instr_agg_cfetch *i;
             Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
+            
             i= new (thd->mem_root)
               sp_instr_agg_cfetch(sp->instructions(), lex->spcont);
             if (i == NULL ||
@@ -16874,15 +16877,13 @@ sf_tail:
           {
             LEX *lex= thd->lex;
             Lex_input_stream *lip= YYLIP;
-
+            lex->sp_chistics.agg_type= NOT_AGGREGATE;
             lex->sphead->set_chistics(lex->sp_chistics);
             lex->sphead->set_body_start(thd, lip->get_cpp_tok_start());
           }
           sp_proc_stmt_in_returns_clause
           {
             LEX *lex= thd->lex;
-            if (lex->sp_chistics.agg_type != GROUP_AGGREGATE)
-              lex->sp_chistics.agg_type= NOT_AGGREGATE;
             lex->sphead->set_chistics(lex->sp_chistics);
             if (Lex->sp_body_finalize_function(thd))
               MYSQL_YYABORT;
