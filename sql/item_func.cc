@@ -6427,14 +6427,6 @@ const Type_handler *Item_func_sp::type_handler() const
   DBUG_RETURN(handler->type_handler_for_item_field());
 }
 
-Item_result
-Item_func_sp::result_type() const
-{
-  DBUG_ENTER("Item_func_sp::result_type");
-  DBUG_RETURN(Item_sp::result_type());
->>>>>>> 762b5d0... removing code duplication, using Item_sp to store all the common functionality between Item_func_sp and Item_sum_sp
-}
-
 
 longlong Item_func_found_rows::val_int()
 {
@@ -6539,7 +6531,7 @@ Item_func_sp::fix_fields(THD *thd, Item **ref)
   if (res)
     DBUG_RETURN(TRUE);
 
-  if (m_sp->m_chistics->agg_type == GROUP_AGGREGATE)
+  if (m_sp->agg_type() == GROUP_AGGREGATE)
   {
     List<Item> list;
     list.empty();

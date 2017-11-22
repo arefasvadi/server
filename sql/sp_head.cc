@@ -997,7 +997,7 @@ sp_head::execute(THD *thd, bool merge_da_on_success)
   sp_rcontext *ctx= thd->spcont;
   bool err_status= FALSE;
   uint ip= 0;
-  if (m_chistics->agg_type == GROUP_AGGREGATE)
+  if (m_chistics.agg_type == GROUP_AGGREGATE)
     ip= thd->spcont->instr_ptr;
   ulonglong save_sql_mode;
   bool save_abort_on_warning;
@@ -1253,12 +1253,12 @@ sp_head::execute(THD *thd, bool merge_da_on_success)
 
   thd->restore_active_arena(&execute_arena, &backup_arena);
 
-  if (m_chistics->agg_type != GROUP_AGGREGATE ||
-      (m_chistics->agg_type == GROUP_AGGREGATE && thd->spcont->quit_func))
+  if (m_chistics.agg_type != GROUP_AGGREGATE ||
+      (m_chistics.agg_type == GROUP_AGGREGATE && thd->spcont->quit_func))
     thd->spcont->pop_all_cursors(); // To avoid memory leaks after an error
 
   /* Restore all saved */
-  if (m_chistics->agg_type == GROUP_AGGREGATE)
+  if (m_chistics.agg_type == GROUP_AGGREGATE)
     thd->spcont->instr_ptr= ip;
   thd->server_status= (thd->server_status & ~status_backup_mask) | old_server_status;
   old_packet.swap(thd->packet);
@@ -1881,7 +1881,7 @@ err_with_cleanup:
    - restores security context
 
   @param thd               Thread handle
-  @param args              Passed arguments
+  @param argp              Passed arguments
   @param argcount          Number of passed arguments. We need to check if
                            this is correct.
   @param return_value_fld  Save result here.
@@ -1900,8 +1900,8 @@ err_with_cleanup:
 */
 
 bool
-sp_head::execute_aggregate_function(THD *thd, Item **args, uint argcount,
-                                    Field *return_fld, sp_rcontext **func_ctx,
+sp_head::execute_aggregate_function(THD *thd, Item **argp, uint argcount,
+                                    Field *return_value_fld, sp_rcontext **func_ctx,
                                     MEM_ROOT *call_mem_root)
 {
   ulonglong UNINIT_VAR(binlog_save_options);
@@ -1946,7 +1946,7 @@ sp_head::execute_aggregate_function(THD *thd, Item **args, uint argcount,
   {
     thd->set_n_backup_active_arena(&call_arena, &backup_arena);
 
-    if (!(*func_ctx= rcontext_create(thd, false, return_fld)))
+    if (!(*func_ctx= rcontext_create(thd, return_value_fld, argp, argcount)))
     {
       thd->restore_active_arena(&call_arena, &backup_arena);
       err_status= TRUE;
@@ -1964,14 +1964,10 @@ sp_head::execute_aggregate_function(THD *thd, Item **args, uint argcount,
   for (arg_no= 0; arg_no < argcount; arg_no++)
   {
     // Arguments must be fixed in Item_sum_sp::fix_fields
-    DBUG_ASSERT(args[arg_no]->fixed);
-    if ((err_status= (*func_ctx)->set_variable(thd, arg_no, &(args[arg_no]))))
+    DBUG_ASSERT(argp[arg_no]->fixed);
+    if ((err_status= (*func_ctx)->set_variable(thd, arg_no, &(argp[arg_no]))))
       goto err_with_cleanup;
   }
-
-#ifndef DBUG_OFF
-  (*func_ctx)->sp= this;
-#endif
 
   /*
     If row-based binlogging, we don't need to binlog the function's call, let
@@ -2016,7 +2012,7 @@ sp_head::execute_aggregate_function(THD *thd, Item **args, uint argcount,
 
 #ifndef NO_EMBEDDED_ACCESS_CHECKS
   Security_context *save_security_ctx;
-  if (set_routine_security_ctx(thd, this, FALSE, &save_security_ctx))
+  if (set_routine_security_ctx(thd, this, &save_security_ctx))
   {
     err_status= TRUE;
     goto err_with_cleanup;

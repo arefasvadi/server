@@ -4365,11 +4365,9 @@ class Item_sp
   bool sp_check_access(THD *thd);
   bool execute(THD *thd, bool *null_value, Item **args, uint arg_count);
   bool execute_impl(THD *thd, Item **args, uint arg_count);
-  bool find_routine(THD *thd);
   void init_dummy_table(THD *thd);
   bool init_result_field(THD *thd, uint max_length, LEX_CSTRING *name);
   enum enum_field_types field_type() const;
-  enum Item_result result_type() const;
 };
 
 

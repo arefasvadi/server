@@ -2629,14 +2629,21 @@ create:
         | create_or_replace definer FUNCTION_SYM
           {
             Lex->create_info.set($1); 
-            Lex->sp_chistics.agg_type= NOT_AGGREGATE;
+            if (Lex->sp_chistics.agg_type == GROUP_AGGREGATE)
+            {
+              my_yyabort_error((ER_NOT_AGGREGATE_FUNCTION, MYF(0), ""));
+            }
+            Lex->sp_chistics.agg_type = NOT_AGGREGATE;
           }
           sf_tail
           { }
         | create_or_replace definer AGGREGATE_SYM FUNCTION_SYM
           {
             Lex->create_info.set($1);
-            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
+            if (Lex->sp_chistics.agg_type != GROUP_AGGREGATE)
+            {
+              my_yyabort_error((ER_INVALID_AGGREGATE_FUNCTION, MYF(0), ""));
+            }
           }
           sf_tail
           { }
@@ -2679,14 +2686,21 @@ create:
 create_function_tail:
           sf_tail 
           {
-            Lex->sp_chistics.agg_type= NOT_AGGREGATE;
+            if (Lex->sp_chistics.agg_type == GROUP_AGGREGATE)
+            {
+              my_yyabort_error((ER_NOT_AGGREGATE_FUNCTION, MYF(0), ""));
+            }
+            Lex->sp_chistics.agg_type = NOT_AGGREGATE;
           }
         | udf_tail { Lex->udf.type= UDFTYPE_FUNCTION; }
         ;
 create_function_tail2:
           sf_tail  
           {
-            Lex->sp_chistics.agg_type= GROUP_AGGREGATE;
+            if (Lex->sp_chistics.agg_type != GROUP_AGGREGATE)
+            {
+              my_yyabort_error((ER_INVALID_AGGREGATE_FUNCTION, MYF(0), ""));
+            }
           }
         | udf_tail { Lex->udf.type= UDFTYPE_AGGREGATE; }
         ;
@@ -16867,6 +16881,8 @@ sf_tail:
           sp_proc_stmt_in_returns_clause
           {
             LEX *lex= thd->lex;
+            if (lex->spchistics.agg_type != GROUP_AGGREGATE)
+              lex->spchistics.agg_type= NOT_AGGREGATE;
             lex->sphead->set_chistics(lex->sp_chistics);
             if (Lex->sp_body_finalize_function(thd))
               MYSQL_YYABORT;

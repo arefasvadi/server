@@ -1276,13 +1276,19 @@ Item_sum_sp::Item_sum_sp(THD *thd, Name_resolution_context *context_arg,
 */
 
 bool
-Item_sum_sp::init_result_field(THD *thd)
+Item_sum_sp::init_result_field(THD *thd, sp_head *sp)
 {
   bool res;
   DBUG_ENTER("Item_sum_sp::init_result_field");
-  res= Item_sp::find_routine(thd);
-  if (res)
-    DBUG_RETURN(res);
+  DBUG_ASSERT(m_sp == NULL);
+  DBUG_ASSERT(sp_result_field == NULL);
+
+  if (!(m_sp= sp))
+  {
+    my_missing_function_error (m_name->m_name, ErrConvDQName(m_name).ptr());
+    context->process_error(thd);
+    DBUG_RETURN(TRUE);
+  }
   /*
      A Field need to be attached to a Table.
      Below we "create" a dummy table by initializing 
@@ -1305,11 +1311,12 @@ Item_sum_sp::fix_fields(THD *thd, Item **ref)
 {
   bool res;
   DBUG_ASSERT(fixed == 0);
+  sp_head *sp= sp_handler_function.sp_find_routine(thd, m_name, true);
   if (init_sum_func_check(thd))
     return TRUE;
   decimals= 0;
 
-  res= init_result_field(thd);
+  res= init_result_field(thd, sp);
 
   if (res)
     return res;
@@ -1430,11 +1437,14 @@ Item_sum_sp::clear()
   free_root(&caller_mem_root, MYF(0));
 }
 
-enum Item_result
-Item_sum_sp::result_type() const
+const Type_handler *Item_sum_sp::type_handler() const
 {
-  DBUG_ENTER("Item_sum_sp::result_type");
-  DBUG_RETURN(Item_sp::result_type());
+  DBUG_ENTER("Item_sum_sp::type_handler");
+  DBUG_PRINT("info", ("m_sp = %p", (void *) m_sp));
+  DBUG_ASSERT(sp_result_field);
+  // This converts ENUM/SET to STRING
+  const Type_handler *handler= sp_result_field->type_handler();
+  DBUG_RETURN(handler->type_handler_for_item_field());
 }
 
 void

@@ -2811,8 +2811,8 @@ Item_sp::execute_impl(THD *thd, Item **args, uint arg_count)
   Sub_statement_state statement_state;
   Security_context *save_security_ctx= thd->security_ctx;
   enum enum_sp_data_access access=
-    (m_sp->m_chistics->daccess == SP_DEFAULT_ACCESS) ?
-     SP_DEFAULT_ACCESS_MAPPING : m_sp->m_chistics->daccess;
+    (m_sp->daccess() == SP_DEFAULT_ACCESS) ?
+     SP_DEFAULT_ACCESS_MAPPING : m_sp->daccess();
 
   DBUG_ENTER("Item_sp::execute_impl");
 
@@ -2829,7 +2829,7 @@ Item_sp::execute_impl(THD *thd, Item **args, uint arg_count)
     statement-based replication (SBR) is active.
   */
 
-  if (!m_sp->m_chistics->detistic && !trust_function_creators &&
+  if (!m_sp->detistic() && !trust_function_creators &&
       (access == SP_CONTAINS_SQL || access == SP_MODIFIES_SQL_DATA) &&
       (mysql_bin_log.is_open() &&
        thd->variables.binlog_format == BINLOG_FORMAT_STMT))
@@ -2853,21 +2853,6 @@ error:
   thd->security_ctx= save_security_ctx;
 
   DBUG_RETURN(err_status);
-}
-
-bool Item_sp::find_routine(THD *thd)
-{
-  DBUG_ASSERT(m_sp == NULL);
-  DBUG_ASSERT(sp_result_field == NULL);
-
-  if (!(m_sp= sp_find_routine(thd, TYPE_ENUM_FUNCTION, m_name,
-                               &thd->sp_func_cache, TRUE)))
-  {
-    my_missing_function_error (m_name->m_name, ErrConvDQName(m_name).ptr());
-    context->process_error(thd);
-    return true;
-  }
-  return false;
 }
 
 
@@ -2910,15 +2895,6 @@ Item_sp::init_result_field(THD *thd, uint max_length, LEX_CSTRING *name)
     sp_result_field->move_field(result_buf);
 
   DBUG_RETURN(FALSE);
-}
-
-enum Item_result
-Item_sp::result_type() const
-{
-  DBUG_ENTER("Item_sp::result_type");
-  DBUG_PRINT("info", ("m_sp = %p", (void *) m_sp));
-  DBUG_ASSERT(sp_result_field);
-  DBUG_RETURN(sp_result_field->result_type());
 }
 
 

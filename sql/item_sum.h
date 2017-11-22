@@ -1246,7 +1246,7 @@ class Item_sum_sp :public Item_sum,
  private:
   bool execute();
   bool execute_impl(THD *thd);
-  bool init_result_field(THD *thd);
+  bool init_result_field(THD *thd, sp_head *sp);
 
 public:
   Item_sum_sp(THD *thd, Name_resolution_context *context_arg, sp_name *name);
@@ -1262,7 +1262,7 @@ public:
   void fix_length_and_dec();
   bool fix_fields(THD *thd, Item **ref);
   const char *func_name() const;
-  enum Item_result result_type () const;
+  const Type_handler *type_handler() const;
   bool add();
   bool sp_check_access(THD *thd);
 
