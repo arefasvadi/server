@@ -1414,16 +1414,15 @@ int ha_commit_trans(THD *thd, bool all)
     goto err;
   }
 
-  if (rw_trans || thd->lex->sql_command == SQLCOM_ALTER_TABLE)
+  if (rw_trans && use_transaction_registry)
   {
-    if (use_transaction_registry && thd->vers_update_trt)
-    {
-      TR_table trt(thd, true);
-      if (trt.update())
-        goto err;
-      if (all)
-        commit_one_phase_2(thd, false, &thd->transaction.stmt, false);
-    }
+    TR_table trt(thd, true);
+    if (trt.update())
+      goto err;
+#if 1 // FIXME: fix this properly, and remove TR_table::was_updated()
+    if (all && trt.was_updated()) // avoid a crash in versioning.rpl_stmt
+      commit_one_phase_2(thd, false, &thd->transaction.stmt, false);
+#endif
   }
 
   if (trans->no_2pc || (rw_ha_count <= 1))

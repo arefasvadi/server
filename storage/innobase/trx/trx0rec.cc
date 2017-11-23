@@ -2015,10 +2015,26 @@ trx_undo_report_row_operation(
 			mutex_exit(&trx->undo_mutex);
 
 			if (!is_temp) {
-				trx->mod_tables.insert(
-					trx_mod_tables_t::value_type(
-						index->table,
-						undo->top_undo_no));
+				const undo_no_t limit = undo->top_undo_no;
+				/* Determine if this is the first time
+				when this transaction modifies a
+				system-versioned column in this table. */
+				trx_mod_table_time_t& time
+					= trx->mod_tables.insert(
+						trx_mod_tables_t::value_type(
+							index->table, limit))
+					.first->second;
+				ut_ad(!time.is_after(limit + 1));
+				ut_ad(time.valid());
+
+				if (!time.is_versioned()
+				    && index->table->versioned()
+				    && (!rec /* INSERT */
+					|| !update /* DELETE */
+					|| update->affects_versioned())) {
+
+					time.set_versioned(limit);
+				}
 			}
 
 			*roll_ptr = trx_undo_build_roll_ptr(

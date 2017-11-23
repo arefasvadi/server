@@ -130,13 +130,15 @@ trx_rollback_to_savepoint_low(
 		for (trx_mod_tables_t::iterator i = trx->mod_tables.begin();
 		     i != trx->mod_tables.end(); ) {
 			trx_mod_tables_t::iterator j = i++;
-			if (j->second >= limit) {
+			ut_ad(j->second.valid());
+			if (j->second.is_after(limit)) {
 				trx->mod_tables.erase(j);
+			} else {
+				j->second.rollback_versioned(limit);
 			}
 		}
 		trx->lock.que_state = TRX_QUE_RUNNING;
 		MONITOR_INC(MONITOR_TRX_ROLLBACK_SAVEPOINT);
-		trx->vers_update_trt = savept->vers_update_trt;
 	}
 
 	ut_a(trx->error_state == DB_SUCCESS);
@@ -626,7 +628,6 @@ trx_savept_take(
 	trx_savept_t	savept;
 
 	savept.least_undo_no = trx->undo_no;
-	savept.vers_update_trt = trx->vers_update_trt;
 
 	return(savept);
 }
